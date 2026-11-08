@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  foss flavor overlay.
+
+  This is the only manifest that declares the privileged service. The play artifact has no such
+  declaration and no such class (FR-822, FR-823) — see the verifyPlayHasNoRootCode task.
+
+  RECEIVE_BOOT_COMPLETED is deliberately absent: mount-at-boot (FR-306a) is P2 and out of scope for
+  this pass, and its mechanism is a post-fs-data root-manager script that needs no Android permission
+  anyway (see Q18).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          NOT YET DECLARED — dev.rsm.root.PrivilegedFsService does not exist yet, and a manifest
+          component whose class is missing is a hard failure rather than a no-op. Re-add this block
+          in the same commit that adds the class, never ahead of it.
+
+          FR-301c: privileged filesystem work happens in a libsu RootService, which runs in a
+          separate root-owned process. The Binder interface it exposes is IPrivilegedFs (see
+          src/foss/aidl) — narrow, token-addressed, and with no method that accepts a shell command
+          string (FR-933).
+
+          android:process is set by libsu's RootService machinery at runtime; the declaration itself
+          is an ordinary non-exported service:
+
+            <service
+                android:name="dev.rsm.root.PrivilegedFsService"
+                android:exported="false" />
+        -->
+    </application>
+</manifest>

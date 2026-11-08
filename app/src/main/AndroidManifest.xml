@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared manifest. Flavor overlays live in src/foss and src/play.
+
+  Permission inventory is §13 of the requirements corpus, and FR-941 requires every declared
+  permission to have an in-app explanation reachable from settings — see
+  dev.rsm.ui.settings.PermissionExplanations, which is keyed by the exact strings below. Adding a
+  permission here without adding it there is a defect.
+
+  Deliberately absent:
+    * android.permission.INTERNET          — FR-607: no core function needs a network, and the Play
+                                             build should declare no network permission at all.
+    * WRITE_EXTERNAL_STORAGE               — FR-940, forbidden outright.
+    * android:requestLegacyExternalStorage — FR-940, forbidden outright.
+  There is no `package` attribute: the namespace is declared in build.gradle.kts (AGP requirement).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- FR-604: long-running transfers and mount keepalive run in a foreground service. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- FR-604's progress notification. Runtime grant on API 33+. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      FR-820/FR-821: declared in both flavors, but the app MUST be fully functional without it.
+      The Play build needs the Permissions Declaration Form; if that is refused, the app degrades to
+      SAF plus its own DocumentsProvider (FR-202). FR-712 surfaces it as a remedy on HyperOS where
+      SAF grants are reported to fail on SD cards.
+    -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
+    <!-- USB host mode. Not required: the app is useful for internal microSD volumes alone. -->
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+
+    <application
+        android:name=".RsmApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Rsm">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Rsm">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+              FR-100: attachment is detected by this filter, with a device_filter matching USB
+              class 0x08 (Mass Storage). The broadcast fires only on the attach edge, which is why
+              UsbDeviceEnumerator also walks UsbManager.getDeviceList() at launch.
+
+              FR-721: where other apps also handle this action the platform shows a disambiguation
+              chooser. That is normal and the app must not try to suppress it.
+            -->
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/usb_device_filter" />
+        </activity>
+
+        <!--
+          NOT YET DECLARED — the classes below do not exist yet, and a manifest component whose class
+          is missing is a hard crash, not a no-op. A <provider> is the worst case: ActivityThread
+          instantiates every declared provider inside handleBindApplication, before any activity
+          runs, so a missing provider class kills the process on every cold start with
+          "Unable to get provider ... ClassNotFoundException" and no screen ever appears. Clearing
+          app data cannot help, because nothing about it is state-dependent.
+
+          Re-add each block below in the same commit that adds its class — never ahead of it.
+
+          1. FR-500 dev.rsm.provider.RsmDocumentsProvider — the primary interoperability surface on
+             both access paths (C-6):
+
+               <provider android:name=".provider.RsmDocumentsProvider"
+                   android:authorities="${applicationId}.documents"
+                   android:exported="true"
+                   android:grantUriPermissions="true"
+                   android:permission="android.permission.MANAGE_DOCUMENTS">
+                   <intent-filter>
+                       <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+                   </intent-filter>
+               </provider>
+
+             FR-934 asks that the provider not be exported to arbitrary callers "beyond the SAF
+             contract". A provider SAF can enumerate must be exported; what makes that safe is the
+             android.permission.MANAGE_DOCUMENTS guard, which only the system holds, plus per-call
+             URI grant checks in the provider itself. exported="false" would make the provider
+             invisible to SAF and defeat FR-500. To be recorded in
+             docs/decisions/0006-provider-export.md.
+
+          2. FR-604 dev.rsm.service.TransferService — bounded work; dataSync is permitted for
+             transfers (FR-604a, MAY):
+
+               <service android:name=".service.TransferService"
+                   android:exported="false"
+                   android:foregroundServiceType="dataSync" />
+
+          3. FR-604a dev.rsm.service.MountKeepaliveService — an unbounded mount keepalive cannot use
+             dataSync because of the 6h/24h cumulative cap reported for Android 15+, so it declares
+             specialUse with a subtype (@string/fgs_special_use_subtype is already defined). Q4 is
+             still open on whether that cap applies as stated; dev.rsm.service.FgsTypePolicy is
+             intended to be the single place the choice is made, so resolving Q4 stays a one-file
+             change:
+
+               <service android:name=".service.MountKeepaliveService"
+                   android:exported="false"
+                   android:foregroundServiceType="specialUse">
+                   <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                       android:value="@string/fgs_special_use_subtype" />
+               </service>
+        -->
+    </application>
+</manifest>

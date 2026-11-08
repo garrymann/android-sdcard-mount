@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FR-930: the app MUST NOT transmit file contents, filenames, or volume identifiers off the device.
+  Cloud backup and device-to-device transfer are both such transmissions, and the app's persisted
+  state contains volume UUIDs and labels, so both are excluded outright. android:allowBackup is also
+  false; this file makes the intent explicit rather than incidental.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="file" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="file" />
+    </device-transfer>
+</data-extraction-rules>

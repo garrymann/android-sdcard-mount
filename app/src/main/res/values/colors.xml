@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Window background only — the pre-Compose frame. Everything else is themed in Kotlin.
+
+  The value matches RsmLightColors.surface in ui/theme/Color.kt so the handoff to Compose is
+  invisible. On a device using dynamic colour the two differ slightly for one frame, which is not
+  worth chasing: a barely-wrong shade beats a white flash.
+-->
+<resources>
+    <color name="window_background">#FDFCFF</color>
+</resources>

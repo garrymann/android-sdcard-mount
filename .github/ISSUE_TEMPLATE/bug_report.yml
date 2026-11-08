@@ -1,0 +1,90 @@
+name: Bug report
+description: Something does not work, or a volume is detected or classified wrongly.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Device details matter: the same card can behave differently across
+        phones, kernels and storage stacks. Report security issues privately (see SECURITY.md), not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Include the exact reason text the app showed for the volume, if any.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Insert ...
+        2. Open the app ...
+    validations:
+      required: true
+  - type: dropdown
+    id: data-loss
+    attributes:
+      label: Was any data lost or corrupted?
+      options:
+        - "No"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version and flavor
+      description: Copy the version line from the About screen, e.g. "Version 0.1.0 (100) · play build".
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: e.g. Pixel 8, Android 16; Galaxy S24 (One UI 8)
+    validations:
+      required: true
+  - type: dropdown
+    id: root
+    attributes:
+      label: Root
+      options:
+        - Not rooted
+        - Magisk
+        - KernelSU
+        - APatch
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: media
+    attributes:
+      label: How is the storage connected?
+      options:
+        - Internal microSD slot
+        - USB-OTG drive
+        - USB card reader
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: filesystem
+    attributes:
+      label: Filesystem and partition table
+      description: As formatted on a computer, if you know it.
+      placeholder: e.g. exFAT on MBR, single partition
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant `adb logcat` output, if you can capture it. Remove anything personal.
+      render: text

@@ -1,0 +1,80 @@
+# Single source of dependency versions. Every version here was checked against live repository
+# metadata (dl.google.com, repo1.maven.org, jitpack.io) rather than recalled.
+#
+# Deliberately absent: a `kotlin-android` plugin entry. AGP 9 ships built-in Kotlin support and
+# applying `org.jetbrains.kotlin.android` on top of it fails the build with
+#   Cannot add extension with name 'kotlin', as there is an extension already registered with that name
+# See the comment block in the root build.gradle.kts.
+
+[versions]
+# Toolchain. AGP 9.3 requires Gradle >= 9.5.0; the wrapper pins 9.6.1.
+agp = "9.3.1"
+kotlin = "2.4.10"
+jdk = "17"                  # AGP 9.3's minimum and default; also the jvmTarget
+
+# SDK levels. FR-001: minSdk MUST be 30, targetSdk MUST be 36+.
+# compileSdk 37 is not a preference — androidx.core 1.19.0 and lifecycle 2.11.0 declare
+# minCompileSdk 37, and AGP 9 requires library consumers to match by default.
+compileSdk = "37"
+minSdk = "30"
+targetSdk = "37"
+
+androidxCore = "1.19.0"
+androidxActivity = "1.13.0"
+androidxLifecycle = "2.11.0"
+androidxNavigation = "2.9.8"          # 2.10.0 is alpha-only
+androidxDocumentfile = "1.1.0"
+androidxAnnotation = "1.10.0"
+composeBom = "2026.06.01"
+
+# FR-301: libsu, version 6.0.0, from JitPack and not Maven Central.
+libsu = "6.0.0"
+
+# JUnit unified versioning: the platform is 6.x now, not 1.x. Requires Java 17+ at test runtime.
+junit = "6.1.2"
+androidxTest = "1.6.2"
+androidxTestExtJunit = "1.2.1"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidxLifecycle" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigation" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "androidxDocumentfile" }
+
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+
+# Root path only. Referenced from the foss flavor's configurations, never from src/main (FR-822/FR-823).
+libsu-core = { module = "com.github.topjohnwu.libsu:core", version.ref = "libsu" }
+libsu-service = { module = "com.github.topjohnwu.libsu:service", version.ref = "libsu" }
+libsu-nio = { module = "com.github.topjohnwu.libsu:nio", version.ref = "libsu" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+# Android test dependencies. Compose UI testing uses the Compose BOM above, so its artifacts do
+# not carry an independent version here.
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJunit" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+
+# Pinned explicitly on the root buildscript classpath: AGP 9.3.1 declares KGP 2.2.10 transitively,
+# and because no Kotlin plugin is applied to the app module the effective version would otherwise be
+# an accident of conflict resolution.
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  User-visible copy.
+
+  The two strings marked PRESCRIBED are fixed by FR-601 and are asserted as exact strings by the
+  acceptance criteria (60-ui.md AC-2 and AC-6). Do not reword them, do not "improve" the
+  punctuation, and do not add a placeholder to them.
+
+  FR-602 forbids a generic "Mount failed" anywhere, so there is deliberately no catch-all failure
+  string in this file to reach for.
+-->
+<resources>
+    <string name="app_name">Removable Storage Manager</string>
+    <string name="startup_message">Connect a USB storage device or insert an SD card to begin.</string>
+    <string name="fgs_special_use_subtype">Keeps an explicitly requested removable-storage mount available.</string>
+
+    <!-- ===================================================================================== -->
+    <!-- Volume list (FR-600)                                                                  -->
+    <!-- ===================================================================================== -->
+    <string name="volumes_title">Storage</string>
+    <string name="volumes_empty_title">No removable storage detected</string>
+    <string name="volumes_empty_body">Connect a USB drive or insert a memory card. Detected volumes appear here automatically.</string>
+
+    <string name="volume_filesystem_unprobed">Filesystem not read</string>
+    <string name="volume_grant">Grant access</string>
+
+    <!--
+      FR-600 requires size and used/free on every volume. This is the same obligation as before, just
+      stated in full rather than free-space-only, and the "unavailable" wording replaces a bare "—":
+      the dash satisfied the letter of FR-600 but told the user nothing about why the number is
+      missing. Neither string guesses a capacity — see StorageVolumeScanner.readUsage on why a
+      confidently wrong size is worse than none.
+    -->
+    <string name="volume_usage_full">%1$s free of %2$s · %3$s used</string>
+    <string name="volume_usage_unavailable">Capacity not reported for this volume</string>
+    <!--
+      The same line for a row that is a *device*, not a volume. Saying "not reported for this
+      volume" there implies a volume exists whose capacity was withheld, when the whole reason the
+      row is on screen is that Android reported no volume at all. Same honesty rule as the pair
+      above: state which fact is missing, do not imply a different one. See Q20.
+    -->
+    <string name="device_usage_unavailable">No capacity to report — Android has not reported a volume for this device</string>
+
+    <!-- Per-volume header line: what it is and how it is reached. -->
+    <string name="volume_via_method">%1$s · via %2$s</string>
+
+    <!--
+      Shown on a volume that is reachable. The app has no built-in browser yet (FR-603), and
+      00-scope's non-goals make third-party file managers the intended primary UI anyway, so this
+      says where the volume can actually be used instead of offering a button that leads nowhere.
+    -->
+    <string name="volume_ready_hint">Reachable from any file manager that uses Android\'s storage picker.</string>
+
+    <!-- Per-volume access-grant management. -->
+    <string name="volume_revoke">Revoke access</string>
+    <string name="volume_revoke_title">Revoke access to %1$s?</string>
+    <string name="volume_revoke_body">This app will no longer be able to read or write %1$s. Nothing on the volume is changed or deleted. You can grant access again at any time.</string>
+    <string name="volume_revoke_confirm">Revoke</string>
+    <string name="volume_revoke_cancel">Cancel</string>
+    <string name="volume_revoke_done">Access to %1$s revoked.</string>
+    <!-- The grant lapsed on its own before the tap landed — reporting a revoke would be a lie. -->
+    <string name="volume_revoke_nothing_held">No stored access for %1$s to revoke.</string>
+
+    <!-- Expandable per-volume diagnostics. Extra detail only: none of FR-600's six fields hide here. -->
+    <string name="volume_details_show">Details</string>
+    <string name="volume_details_hide">Hide details</string>
+    <string name="volume_detail_id">Volume id</string>
+    <!-- A device row's id is its USB device node (/dev/bus/usb/…), which is not a volume id. -->
+    <string name="device_detail_id">USB device</string>
+    <string name="volume_detail_location">Location</string>
+    <string name="volume_detail_location_internal">Built-in card slot</string>
+    <string name="volume_detail_location_usb">USB or external</string>
+    <string name="volume_detail_removable">Removable</string>
+    <string name="volume_detail_grant">Stored access grant</string>
+    <string name="volume_detail_grant_held">Held</string>
+    <string name="volume_detail_grant_none">None</string>
+    <string name="volume_detail_root">Privileged path</string>
+    <string name="volume_detail_yes">Yes</string>
+    <string name="volume_detail_no">No</string>
+
+    <!-- Top bar and menus. -->
+    <string name="action_refresh">Rescan storage</string>
+    <string name="action_more">More options</string>
+    <string name="action_volume_options">Options for %1$s</string>
+    <string name="action_about">About</string>
+    <string name="action_back">Back</string>
+
+    <plurals name="volumes_summary">
+        <item quantity="one">%1$d of %2$d volume ready to use</item>
+        <item quantity="other">%1$d of %2$d volumes ready to use</item>
+    </plurals>
+
+    <!-- ===================================================================================== -->
+    <!-- About                                                                                 -->
+    <!-- ===================================================================================== -->
+    <string name="about_title">About</string>
+    <!-- %1$s versionName, %2$d versionCode, %3$s build flavor. All three come from BuildConfig. -->
+    <string name="about_version">Version %1$s (%2$d) · %3$s build</string>
+    <string name="about_tagline">Detects, identifies and explains removable storage — and says plainly when Android will not let an app reach it.</string>
+
+    <string name="about_links_header">Links</string>
+    <string name="about_github">Source code on GitHub</string>
+    <string name="about_github_subtitle">github.com/garrymann</string>
+    <string name="about_donate">Support development</string>
+    <string name="about_donate_subtitle">paypal.me/garyfromhungary</string>
+    <!-- FR-602: a failed link needs a specific reason, not a generic failure toast. -->
+    <string name="about_link_failed">No app on this device can open web links.</string>
+
+    <string name="about_licences_header">Open-source licences</string>
+    <string name="about_licence_androidx">AndroidX and Jetpack Compose — Apache License 2.0</string>
+    <string name="about_licence_kotlin">Kotlin standard library — Apache License 2.0</string>
+    <string name="about_licence_libsu">libsu (root build only) — Apache License 2.0</string>
+    <string name="about_offline_note">This app needs no network connection and declares no internet permission. Opening a link above hands it to your browser.</string>
+
+    <!-- Access method (FR-600 requires the method to be shown, not just success or failure). -->
+    <string name="access_method_saf">SAF</string>
+    <string name="access_method_raw_usb">Raw USB</string>
+    <string name="access_method_root">Root mount</string>
+    <string name="access_method_none">No access</string>
+
+    <!--
+      The badge at the top of a card: the app's own verdict, derived from VolumeAccess.
+
+      This is in addition to the platform state below, not instead of it. FR-600's "current access
+      state" is answered by both, and they are not the same thing — a MOUNTED volume with no tree
+      grant is "Mounted" to Android and "Permission needed" to this app, and the strings block below
+      exists precisely so two cards behaving differently can be told apart.
+    -->
+    <string name="access_state_ready">Ready</string>
+    <string name="access_state_ready_read_only">Ready · read-only</string>
+    <string name="access_state_needs_grant">Permission needed</string>
+    <string name="access_state_busy">Working…</string>
+    <string name="access_state_blocked">Not available</string>
+
+    <!-- Platform state, shown so that two cards behaving differently are distinguishable. -->
+    <string name="state_mounted">Mounted</string>
+    <string name="state_mounted_read_only">Mounted (read-only)</string>
+    <string name="state_checking">Checking…</string>
+    <string name="state_ejecting">Ejecting…</string>
+    <string name="state_unmounted">Not mounted</string>
+    <string name="state_unmountable">Android could not mount this</string>
+    <string name="state_no_filesystem">No recognised filesystem</string>
+    <string name="state_bad_removal">Removed without ejecting</string>
+    <string name="state_removed">Removed</string>
+    <string name="state_unknown">State unknown</string>
+    <!-- Not an Environment.MEDIA_* state: Android reported no volume for this device at all. -->
+    <string name="state_not_reported">No volume reported by Android</string>
+
+    <!-- ===================================================================================== -->
+    <!-- FR-601 AC-7: every reason is shown together with whether root would help.              -->
+    <!-- ===================================================================================== -->
+    <string name="root_would_help">Root access would make this readable.</string>
+    <string name="root_would_not_help">Root access would not change this.</string>
+    <string name="root_already_in_use">This happened on the root path, so root is not the missing piece.</string>
+
+    <!-- ===================================================================================== -->
+    <!-- FR-601's five required messages                                                        -->
+    <!-- ===================================================================================== -->
+
+    <!-- PRESCRIBED (FR-601 message 1 / AC-2). Exact string. Do not edit. -->
+    <string name="reason_platform_cannot_mount_no_root">Android cannot mount this filesystem and does not permit apps to read the card directly. Root access is required. (This is an OS security restriction, not an app limitation.)</string>
+
+    <!-- Message 2. AC-3: report the bytes, never the phrase "unknown filesystem". -->
+    <string name="reason_filesystem_unrecognised">No filesystem signature matched. The bytes at offset %2$d are %1$s.</string>
+
+    <!-- Message 3. FR-210: explain how to re-grant instead of re-prompting in a loop. -->
+    <string name="reason_usb_permission_denied">Permission to use %1$s was declined. To grant it, disconnect and reconnect the device, then choose Allow.</string>
+
+    <!-- Message 4. C-7: force-claiming a mounted volume corrupts it, so this is a prompt, not an error. -->
+    <string name="reason_mounted_raw_requested">Android has %1$s mounted. Eject it first — reading it directly while Android has it open would corrupt the filesystem.</string>
+
+    <!-- PRESCRIBED (FR-601 message 5 / AC-6). Exact string. Do not edit. -->
+    <string name="reason_encrypted_for_another_device">This card is encrypted to another device and cannot be read.</string>
+
+    <!-- ===================================================================================== -->
+    <!-- FR-602 AC-8: every other failure needs a specific reason too.                          -->
+    <!-- ===================================================================================== -->
+    <string name="reason_platform_refused_filesystem">Android does not mount %1$s on removable media, so this volume stays unavailable.</string>
+    <string name="reason_platform_unmountable_unknown">Android could not mount this volume, and this app cannot read the card directly to find out why. The card is not necessarily damaged — do not format it just because Android offers to.</string>
+    <string name="reason_uas_only_enclosure">%1$s speaks USB Attached SCSI only, with no mass-storage fallback interface. This app cannot talk to it.</string>
+    <!--
+        Names both causes because the app genuinely cannot tell them apart on the no-root path: the
+        block device is unreachable (C-1) and the sysfs driver bindings are SELinux-denied. Naming
+        one would be a guess presented as a fact. Reconnecting is the remedy for either. See Q20.
+    -->
+    <string name="reason_mass_storage_not_mounted">%1$s is connected, but Android reported no storage volume for it. Either there is no card in it, or another app has taken over its USB interface and not given it back. Disconnect and reconnect it to try again.</string>
+    <string name="reason_root_manager_not_present">No root manager (Magisk, KernelSU or APatch) is installed on this device.</string>
+    <string name="reason_root_grant_declined">The root permission request was declined. Grant it in your root manager to retry.</string>
+    <string name="reason_mount_metamodule_missing">%1$s is installed but its mounting metamodule is not, so it cannot mount filesystems.</string>
+    <string name="reason_ntfs_unclean_read_only">This NTFS volume was not shut down cleanly, so it is mounted read-only to protect it. Reconnect it to Windows and eject it properly, or override this if you accept the risk.</string>
+    <string name="reason_no_ntfs_driver">This kernel has no NTFS driver and no ntfs-3g binary is available, so NTFS cannot be mounted even with root.</string>
+    <string name="reason_mount_verification_failed">The mount command reported success but %1$s did not respond afterwards, so the mount was not trusted.</string>
+    <string name="reason_declared_detected_disagree">The partition table claims %1$s but the volume actually contains %2$s. Kept read-only until that is resolved.</string>
+    <string name="reason_read_round_trip_failed">A verification read at offset %1$d returned different data than was written, so writing has been disabled for this volume.</string>
+    <string name="reason_partition_table_unreadable">The partition table could not be read (%1$d problems found).</string>
+    <string name="reason_removed_uncleanly">The device was removed without being ejected. Any data still being written may be lost.</string>
+    <string name="reason_provider_not_enumerated">This device replaces the system file picker, and its replacement does not list this app, so the built-in browser is used instead.</string>
+    <string name="reason_saf_write_blocked">Android reports this volume as writable and access was granted, but writes are being refused. All-files access can work around this.</string>
+    <string name="reason_platform_eject_requires_user">This volume is not mounted. Mount or eject it from Settings &gt; Device care &gt; Storage — apps are not permitted to mount volumes Android manages.</string>
+    <string name="reason_driver_not_implemented">%1$s is recognised, but this build cannot read it yet.</string>
+    <string name="reason_filesystem_not_supported">%1$s is recognised and is not supported by this app.</string>
+
+    <!-- Device and transport failures (BlockFailureKind). -->
+    <string name="reason_device_medium_error">%1$s reported a medium error — the storage itself is failing.</string>
+    <string name="reason_device_transport_failure">Communication with %1$s failed.</string>
+    <string name="reason_device_detached">%1$s was disconnected.</string>
+    <string name="reason_device_not_ready">%1$s is not ready. If it is a spinning drive it may still be starting up, or it may need more power than this port supplies.</string>
+    <string name="reason_device_out_of_range">%1$s was asked for a sector beyond the end of the medium.</string>
+    <string name="reason_device_write_refused">%1$s refused the write. It may be physically write-protected.</string>
+</resources>

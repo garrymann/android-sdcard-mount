@@ -1,0 +1,21 @@
+# Line endings and binary safety.
+#
+# This file must land in the repository BEFORE gradle/wrapper/gradle-wrapper.jar and before any
+# filesystem image fixture. With core.autocrlf=true on Windows — the default for many installs —
+# git will otherwise rewrite CRLF inside those binaries and corrupt them.
+
+*               text eol=lf
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+*.jar           binary
+*.zip           binary
+*.gz            binary
+*.png           binary
+*.webp          binary
+*.keystore      binary
+*.jks           binary
+
+# Filesystem image fixtures for the FR-920 reference corpus.
+*.img           binary
+*.bin           binary

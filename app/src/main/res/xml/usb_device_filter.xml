@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FR-100: match USB class 0x08 (Mass Storage) = decimal 8.
+
+  Class only, deliberately: subclass and protocol are left unconstrained so that both
+  BOT (protocol 0x50) and UAS (protocol 0x62) enclosures reach the app. FR-211d requires UAS devices
+  to be *detected* and either handled through a BOT alternate interface or explained — filtering them
+  out here would produce exactly the silent failure FR-211d AC-8 calls a defect.
+-->
+<resources>
+    <usb-device class="8" />
+</resources>

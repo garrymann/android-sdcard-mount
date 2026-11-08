@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dark-mode platform theme. See res/values/styles.xml for why this is a separate qualified file
+  rather than a DayNight parent.
+
+  The parent is android:Theme.Material.NoActionBar — the dark variant; Theme.Material.Light.* is the
+  light one. Only the first frame depends on it.
+-->
+<resources>
+    <style name="Theme.Rsm" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

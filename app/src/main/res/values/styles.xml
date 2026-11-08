@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The platform theme. It owns only the window before Compose draws — every colour the user actually
+  sees comes from dev.rsm.ui.theme.RsmTheme.
+
+  Two things it must still get right:
+
+    * windowBackground. This is the first frame on a cold start, so a light value here produces a
+      white flash before the dark Compose surface appears. res/values-night/ overrides both this
+      file and colors.xml, which is why the style is duplicated there rather than parented on a
+      DayNight theme: appcompat and material-components are not dependencies (this is pure Compose
+      on a plain ComponentActivity), and the platform's own DayNight variants are DeviceDefault-only.
+
+    * No edge-to-edge opt-out. targetSdk is 37, where the system draws the app behind the status and
+      navigation bars whether or not it asks to. The fix for content landing under the notification
+      bar is to inset the content — MainActivity calls enableEdgeToEdge() and the Scaffold/TopAppBar
+      apply the insets — NOT to set android:windowOptOutEdgeToEdgeEnforcement, which is a temporary
+      compatibility flag the platform is removing.
+
+  statusBarColor and navigationBarColor are deliberately absent: they are no-ops from API 35 on, and
+  below that enableEdgeToEdge() sets them itself.
+-->
+<resources>
+    <style name="Theme.Rsm" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

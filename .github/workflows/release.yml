@@ -1,0 +1,142 @@
+name: Release
+
+# Publishes the signed foss APK, the sideload channel (FR-801, FR-823), to GitHub Releases:
+#
+#   * pushing a tag v1.2.3 creates the release "v1.2.3";
+#   * every push to main replaces the rolling "nightly" pre-release.
+#
+# Signing needs two repository secrets: RSM_KEYSTORE_BASE64 (the PKCS12 keystore, base64-encoded) and
+# RSM_KEYSTORE_PASSWORD. Without them the workflow fails rather than publish an APK that cannot be
+# updated by the next release.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  # A newer push to main supersedes an in-flight nightly; a tagged release is never cancelled.
+  cancel-in-progress: ${{ github.ref_type == 'branch' }}
+
+jobs:
+  release:
+    name: Build and publish the foss APK
+    # A manual run on any other branch would otherwise overwrite the nightly with unmerged code.
+    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 so `git describe --tags` sees the release tags; see build-and-test.yml.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK 37 platform
+        uses: android-actions/setup-android@v3
+        with:
+          # The default also installs the obsolete `tools` package, which cmdline-tools 16 no longer
+          # provides, so sdkmanager exits 1.
+          packages: platform-tools
+
+      - name: Install Android SDK platform
+        run: sdkmanager "platforms;android-37.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode release keystore
+        env:
+          RSM_KEYSTORE_BASE64: ${{ secrets.RSM_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$RSM_KEYSTORE_BASE64" ]; then
+            echo "::error::Repository secret RSM_KEYSTORE_BASE64 is not set; refusing to publish an unsigned APK."
+            exit 1
+          fi
+          echo "$RSM_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/rsm-release.p12"
+          echo "RSM_KEYSTORE_PATH=$RUNNER_TEMP/rsm-release.p12" >> "$GITHUB_ENV"
+
+      - name: Test and build the signed foss release APK
+        env:
+          RSM_KEYSTORE_PASSWORD: ${{ secrets.RSM_KEYSTORE_PASSWORD }}
+        run: ./gradlew --no-daemon :core-fs:check :app:verifyPlayHasNoRootCode :app:assembleFossRelease
+
+      - name: Verify signature and stage assets
+        id: stage
+        run: |
+          out=app/build/outputs/apk/foss/release
+          apk="$out/$(jq -r '.elements[0].outputFile' "$out/output-metadata.json")"
+          version="$(jq -r '.elements[0].versionName' "$out/output-metadata.json")"
+
+          apksigner="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          certs="$("$apksigner" verify --print-certs "$apk")"
+          echo "$certs"
+          if grep -q "CN=Android Debug" <<< "$certs"; then
+            echo "::error::APK is signed with a debug key."
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::versionName '$version' does not match tag '$GITHUB_REF_NAME'."
+            exit 1
+          fi
+
+          # The nightly keeps a fixed asset name, so its download URL never changes.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            name="rsm-foss-$version.apk"
+          else
+            name="rsm-foss-nightly.apk"
+          fi
+          mkdir dist
+          cp "$apk" "dist/$name"
+          (cd dist && sha256sum -- *.apk > SHA256SUMS)
+          cat dist/SHA256SUMS
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Publish tagged release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --verify-tag \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi
+
+      - name: Publish nightly pre-release
+        if: github.ref_type == 'branch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.stage.outputs.version }}
+        run: |
+          gh release delete nightly --yes --cleanup-tag > /dev/null 2>&1 || true
+          cat > notes.md <<EOF
+          Automated build of \`main\` at ${GITHUB_SHA}, version \`${VERSION}\`.
+
+          > [!WARNING]
+          > Untested development build. It may contain bugs that damage data on the storage it
+          > touches. Use a [tagged release](https://github.com/${GITHUB_REPOSITORY}/releases/latest)
+          > unless you are testing a fix.
+
+          Signed with the same key as tagged releases, so it installs over them and they over it as
+          long as the version code increases.
+          EOF
+          gh release create nightly dist/* \
+            --prerelease \
+            --latest=false \
+            --target "$GITHUB_SHA" \
+            --title "Nightly build ($VERSION)" \
+            --notes-file notes.md
