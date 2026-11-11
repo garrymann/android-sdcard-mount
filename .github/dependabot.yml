@@ -1,0 +1,29 @@
+version: 2
+
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    # A dependency joins the first group that matches it, so the narrower groups come first.
+    groups:
+      test:
+        patterns: ["org.junit*", "androidx.test*"]
+      kotlin-and-agp:
+        patterns: ["org.jetbrains.kotlin*", "com.android.*"]
+      androidx:
+        patterns: ["androidx.*"]
+
+  # Workflows pin actions to commit SHAs; Dependabot updates the SHA and its version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]

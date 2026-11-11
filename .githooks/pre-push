@@ -1,0 +1,27 @@
+#!/bin/sh
+# Runs the fast guards before anything leaves the machine: the core unit tests and the check that
+# no root code can reach the Play artifact (FR-822, FR-823). CI stays authoritative; this only
+# catches the obvious failures a few minutes earlier.
+#
+# Bypass: git push --no-verify
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+# stdin has one line per ref; a push consisting only of deletions needs no build.
+if ! grep -qv '^(delete) '; then
+    exit 0
+fi
+
+java_bin="java"
+if [ -n "${JAVA_HOME:-}" ]; then
+    java_bin="$JAVA_HOME/bin/java"
+fi
+java_major="$("$java_bin" -version 2>&1 | sed -n 's/.*version "\([0-9]*\)[."].*/\1/p' | head -n 1)"
+if [ -z "$java_major" ] || [ "$java_major" -lt 17 ]; then
+    echo "pre-push: JDK 17+ not found (JAVA_HOME/PATH gives '${java_major:-none}'); local checks skipped, CI will run them." >&2
+    exit 0
+fi
+
+echo "pre-push: running :core-fs:test and :app:verifyPlayHasNoRootCode (bypass with --no-verify)" >&2
+./gradlew --quiet :core-fs:test :app:verifyPlayHasNoRootCode

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Adds the Developer Certificate of Origin sign-off (see CONTRIBUTING.md) for the commit author,
+# unless that exact trailer is already present.
+set -eu
+
+msg_file="$1"
+ident="$(git var GIT_AUTHOR_IDENT | sed 's/>.*/>/')"
+git interpret-trailers --in-place --if-exists addIfDifferent \
+    --trailer "Signed-off-by: $ident" "$msg_file"

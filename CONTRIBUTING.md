@@ -42,18 +42,36 @@ Automated tests must not need real USB devices, root, network access or writable
 
 Run `./gradlew check` before opening a pull request.
 
+## Git hooks
+
+The repository ships hooks in [.githooks](.githooks). Enable them once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+| Hook | What it does |
+|---|---|
+| `pre-commit` | Blocks keystores, `local.properties` and anything under `docs/`; runs [gitleaks](https://github.com/gitleaks/gitleaks) on staged changes if it is installed |
+| `prepare-commit-msg` | Adds your `Signed-off-by` line (see below) |
+| `pre-push` | Runs `:core-fs:test` and `:app:verifyPlayHasNoRootCode`; skipped when JDK 17 is not available |
+
+CI runs the same checks, so the hooks only catch problems earlier. Bypass one with `--no-verify`.
+
 ## Developer Certificate of Origin
 
 Every commit must be signed off to certify that you wrote it or otherwise have the right to submit it
 under the project's license, as described in the
-[Developer Certificate of Origin](https://developercertificate.org/). Add the sign-off with:
+[Developer Certificate of Origin](https://developercertificate.org/). The `prepare-commit-msg` hook
+adds the sign-off automatically; without the hooks, use:
 
 ```bash
 git commit -s
 ```
 
 This appends a line like `Signed-off-by: Your Name <you@example.com>`, which must match the commit
-author. To sign off commits you have already made, use `git rebase --signoff main`.
+author. The **DCO sign-off** check fails a pull request with any unsigned commit. To sign off commits
+you have already made, use `git rebase --signoff main`.
 
 ## License of contributions
 

@@ -1,0 +1,39 @@
+#!/bin/sh
+# Blocks commits that would publish signing keys, local configuration or the private
+# requirements corpus, and runs gitleaks over the staged changes when it is installed.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+# Bypass in an emergency: git commit --no-verify
+set -eu
+
+fail=0
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+blocked="$(printf '%s\n' "$staged" | grep -Ei '(^|/)(local\.properties|[^/]*\.(p12|pfx|jks|keystore))$' || true)"
+if [ -n "$blocked" ]; then
+    echo "pre-commit: refusing to commit keystores or local configuration:" >&2
+    printf '%s\n' "$blocked" | sed 's/^/  /' >&2
+    fail=1
+fi
+
+private_docs="$(printf '%s\n' "$staged" | grep -E '^docs/' || true)"
+if [ -n "$private_docs" ]; then
+    echo "pre-commit: docs/ is the private requirements corpus and must not be committed:" >&2
+    printf '%s\n' "$private_docs" | sed 's/^/  /' >&2
+    fail=1
+fi
+
+if command -v gitleaks >/dev/null 2>&1; then
+    if gitleaks help git >/dev/null 2>&1; then
+        gitleaks git --pre-commit --staged --redact --no-banner . || fail=1
+    else
+        gitleaks protect --staged --redact --no-banner || fail=1
+    fi
+else
+    echo "pre-commit: gitleaks not installed, secret scan skipped (https://github.com/gitleaks/gitleaks)." >&2
+fi
+
+if [ "$fail" -ne 0 ]; then
+    echo "pre-commit: unstage the files above (git restore --staged <file>) and retry." >&2
+fi
+exit "$fail"

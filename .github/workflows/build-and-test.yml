@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+# Actions are pinned to full commit SHAs, with the release as a trailing comment; Dependabot keeps
+# both up to date (.github/dependabot.yml).
+
 jobs:
   unit-and-build:
     name: Build Play APK and run JVM tests
@@ -18,35 +21,31 @@ jobs:
       # and actions/checkout defaults to a depth-1 clone with no tags — under which describe finds
       # nothing and `rev-list --count HEAD` returns 1, so every CI artifact would be stamped
       # 0.1.0-dev.1 / versionCode 1 regardless of what was tagged.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK 37 platform
-        uses: android-actions/setup-android@v3
-        with:
-          # The default also installs the obsolete `tools` package, which cmdline-tools 16 no longer
-          # provides, so sdkmanager exits 1.
-          packages: platform-tools
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
 
       - name: Install Android SDK platform
         run: sdkmanager "platforms;android-37.0"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       - name: Build Play debug APK and run core unit tests
         run: ./gradlew --no-daemon :app:assemblePlayDebug :app:verifyPlayHasNoRootCode :core-fs:check
 
       - name: Upload unit-test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: unit-test-reports
           path: core-fs/build/reports/tests/
@@ -56,36 +55,28 @@ jobs:
     name: Run UI tests on Android emulator
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth: 0 is load-bearing, not a default worth trimming. versionName and versionCode
-      # are derived from `git describe --tags` (see the versioning block in app/build.gradle.kts),
-      # and actions/checkout defaults to a depth-1 clone with no tags — under which describe finds
-      # nothing and `rev-list --count HEAD` returns 1, so every CI artifact would be stamped
-      # 0.1.0-dev.1 / versionCode 1 regardless of what was tagged.
-      - uses: actions/checkout@v4
+      # fetch-depth: 0 for the same versioning reason as above.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK 37 platform
-        uses: android-actions/setup-android@v3
-        with:
-          # The default also installs the obsolete `tools` package, which cmdline-tools 16 no longer
-          # provides, so sdkmanager exits 1.
-          packages: platform-tools
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
 
       - name: Install Android SDK platform
         run: sdkmanager "platforms;android-37.0"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       - name: Run Play UI tests on API 35
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 35
           target: google_apis
@@ -95,10 +86,8 @@ jobs:
 
       - name: Upload UI-test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ui-test-reports
           path: app/build/reports/androidTests/
           if-no-files-found: ignore
-
-          

@@ -145,9 +145,14 @@ git push origin v1.2.3
 
 Pushing the tag runs [release.yml](.github/workflows/release.yml), which tests the build, signs the
 `foss` release APK and publishes it with its checksum as the GitHub release `v1.2.3`. Every push to
-`main` refreshes the `nightly` pre-release in the same way. Signing reads the repository secrets
-`RSM_KEYSTORE_BASE64` and `RSM_KEYSTORE_PASSWORD`; locally, a release build is signed only when
-`RSM_KEYSTORE_PATH` and `RSM_KEYSTORE_PASSWORD` are set in the environment.
+`main` refreshes the `nightly` pre-release in the same way. Signing reads `RSM_KEYSTORE_BASE64` and
+`RSM_KEYSTORE_PASSWORD` from the `release` environment, which only `main` and `v*` tags can use;
+locally, a release build is signed only when `RSM_KEYSTORE_PATH` and `RSM_KEYSTORE_PASSWORD` are set
+in the environment.
+
+Repository settings (rulesets, security features, Actions policy) are kept in
+[.github/rulesets](.github/rulesets) and applied by
+[scripts/configure-github.ps1](scripts/configure-github.ps1).
 
 Untagged builds fall back to `baseVersion` in [version.properties](version.properties) and report
 `<base>-dev.<commits>`.

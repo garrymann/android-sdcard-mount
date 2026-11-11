@@ -5,9 +5,10 @@ name: Release
 #   * pushing a tag v1.2.3 creates the release "v1.2.3";
 #   * every push to main replaces the rolling "nightly" pre-release.
 #
-# Signing needs two repository secrets: RSM_KEYSTORE_BASE64 (the PKCS12 keystore, base64-encoded) and
-# RSM_KEYSTORE_PASSWORD. Without them the workflow fails rather than publish an APK that cannot be
-# updated by the next release.
+# Signing needs two secrets in the `release` environment: RSM_KEYSTORE_BASE64 (the PKCS12 keystore,
+# base64-encoded) and RSM_KEYSTORE_PASSWORD. The environment only admits main and v* tags, so no
+# other branch's workflow can read the key. Without the secrets the workflow fails rather than
+# publish an APK that cannot be updated by the next release.
 
 on:
   push:
@@ -29,30 +30,33 @@ jobs:
     # A manual run on any other branch would otherwise overwrite the nightly with unmerged code.
     if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: release
     steps:
       # fetch-depth: 0 so `git describe --tags` sees the release tags; see build-and-test.yml.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # The job never pushes, so the token is not left in .git/config for the build to read.
+          persist-credentials: false
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK 37 platform
-        uses: android-actions/setup-android@v3
-        with:
-          # The default also installs the obsolete `tools` package, which cmdline-tools 16 no longer
-          # provides, so sdkmanager exits 1.
-          packages: platform-tools
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
 
       - name: Install Android SDK platform
         run: sdkmanager "platforms;android-37.0"
 
+      # No Gradle cache in the signing job: nothing restored from a cache feeds the signed APK, and
+      # the job never writes one with the key in scope. Costs a few minutes per release.
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-disabled: true
 
       - name: Decode release keystore
         env:

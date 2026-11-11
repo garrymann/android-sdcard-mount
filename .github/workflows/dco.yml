@@ -1,0 +1,45 @@
+name: DCO
+
+# Every commit in a pull request must carry a Signed-off-by trailer matching its author, as
+# CONTRIBUTING.md requires. Bot commits (Dependabot and the like) are exempt.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check Signed-off-by trailers
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          fail=0
+          for c in $(git rev-list --no-merges "$BASE_SHA..$HEAD_SHA"); do
+            email="$(git log -1 --format='%ae' "$c")"
+            case "$email" in
+              *"[bot]@users.noreply.github.com") continue ;;
+            esac
+            author="$(git log -1 --format='%an <%ae>' "$c")"
+            if ! git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$c" \
+                | sed 's/[[:space:]]*$//' | grep -Fqx -- "$author"; then
+              echo "::error::$(git log -1 --format='%h %s' "$c") is missing 'Signed-off-by: $author'"
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Sign off every commit: git rebase --signoff origin/$BASE_REF && git push --force-with-lease"
+            echo "See CONTRIBUTING.md for what the sign-off certifies."
+          fi
+          exit "$fail"
