@@ -108,16 +108,25 @@ Set-Setting 'Actions: approval required for all outside contributors' -PublicOnl
 
 $existing = @{}
 if (-not $isPrivate) {
-    (& gh api "repos/$Repository/rulesets" | ConvertFrom-Json) | ForEach-Object { $existing[$_.name] = $_.id }
+    $rulesets = & gh api "repos/$Repository/rulesets"
+    if ($LASTEXITCODE -ne 0) {
+        # Without the list every ruleset would be POSTed again and fail as a duplicate, or worse,
+        # silently create one alongside a renamed original.
+        throw "Cannot list rulesets for $Repository; nothing was changed. Re-run in a minute."
+    }
+    ($rulesets | ConvertFrom-Json) | ForEach-Object { $existing[$_.name] = $_.id }
 }
 Get-ChildItem (Join-Path $repoRoot '.github\rulesets') -Filter *.json | Sort-Object Name | ForEach-Object {
-    $body = Get-Content $_.FullName -Raw
-    $name = ($body | ConvertFrom-Json).name
-    Set-Setting "Ruleset '$name'" -PublicOnly {
-        if ($existing.ContainsKey($name)) {
-            Invoke-GhApi PUT "repos/$Repository/rulesets/$($existing[$name])" $body
+    $rulesetBody = Get-Content $_.FullName -Raw
+    $rulesetName = ($rulesetBody | ConvertFrom-Json).name
+    $rulesetId = $existing[$rulesetName]
+    # The block runs inside Set-Setting, so it must not use a name Set-Setting also defines: a plain
+    # $name would resolve to its -Name parameter (variable names are case-insensitive).
+    Set-Setting "Ruleset '$rulesetName'" -PublicOnly {
+        if ($rulesetId) {
+            Invoke-GhApi PUT "repos/$Repository/rulesets/$rulesetId" $rulesetBody
         } else {
-            Invoke-GhApi POST "repos/$Repository/rulesets" $body
+            Invoke-GhApi POST "repos/$Repository/rulesets" $rulesetBody
         }
     }
 }
