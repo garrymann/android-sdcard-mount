@@ -19,13 +19,13 @@ compileSdk = "37"
 minSdk = "30"
 targetSdk = "37"
 
-androidxCore = "1.19.0"
+androidxCore = "1.19.1"
 androidxActivity = "1.13.0"
 androidxLifecycle = "2.11.0"
-androidxNavigation = "2.9.8"          # 2.10.0 is alpha-only
+androidxNavigation = "2.10.2"          # 2.10.0 is alpha-only
 androidxDocumentfile = "1.1.0"
-androidxAnnotation = "1.10.0"
-composeBom = "2026.06.01"
+androidxAnnotation = "1.11.0"
+composeBom = "2026.09.00"
 
 # FR-301: libsu, version 6.0.0, from JitPack and not Maven Central.
 libsu = "6.0.0"
