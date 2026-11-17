@@ -8,8 +8,8 @@
 
 [versions]
 # Toolchain. AGP 9.3 requires Gradle >= 9.5.0; the wrapper pins 9.6.1.
-agp = "9.3.1"
-kotlin = "2.4.10"
+agp = "9.5.1"
+kotlin = "2.4.21"
 jdk = "17"                  # AGP 9.3's minimum and default; also the jvmTarget
 
 # SDK levels. FR-001: minSdk MUST be 30, targetSdk MUST be 36+.
