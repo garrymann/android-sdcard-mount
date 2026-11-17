@@ -31,7 +31,7 @@ composeBom = "2026.06.01"
 libsu = "6.0.0"
 
 # JUnit unified versioning: the platform is 6.x now, not 1.x. Requires Java 17+ at test runtime.
-junit = "6.1.2"
+junit = "6.1.3"
 androidxTest = "1.6.2"
 androidxTestExtJunit = "1.2.1"
 
